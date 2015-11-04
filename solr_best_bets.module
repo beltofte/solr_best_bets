@@ -13,36 +13,29 @@
 function solr_best_bets_menu() {
   $items = array();
 
-  $items['admin/config/search/solr_best_bets'] = array(
+  $items['admin/content/solr_best_bets'] = array(
     'title' => 'Solr Best Bets',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('solr_best_bets_admin_form'),
-    'access arguments' => array('administer best bets'),
-    'description' => 'Configure best bets and configuration file generation behavior.',
-    'file' => 'solr_best_bets.admin.inc',
-  );
-
-  $items['admin/config/search/solr_best_bets/configure'] = array(
-    'title' => 'Best Bets',
-    'type' => MENU_DEFAULT_LOCAL_TASK,
-    'weight' => -10,
-  );
-
-  $items['admin/config/search/solr_best_bets/advanced'] = array(
-    'title' => 'Advanced',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('solr_best_bets_advanced_form'),
+    'page arguments' => array('solr_best_bets_admin_overview'),
     'access arguments' => array('administer best bets'),
     'type' => MENU_LOCAL_TASK,
     'file' => 'solr_best_bets.admin.inc',
-    'weight' => 10,
+  );
+
+  $items['admin/config/search/solr_best_bets'] = array(
+    'title' => 'Solr Best Bets',
+    'description' =>  'Configure settings for Solr Best Bets',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('solr_best_bets_advanced_form'),
+    'file' => 'solr_best_bets.admin.inc',
+    'access arguments' => array('administer best bets config'),
   );
 
   $items['admin/config/search/solr_best_bets/keygen'] = array(
     'title' => 'Regenerate keys',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('solr_best_bets_keygen_confirm'),
-    'access arguments' => array('administer best bets'),
+    'access arguments' => array('administer best bets config'),
     'file' => 'solr_best_bets.admin.inc',
   );
 
@@ -83,6 +76,10 @@ function solr_best_bets_menu() {
  */
 function solr_best_bets_permission() {
   return array(
+    'administer best bets config' => array(
+      'title' => t('Administer best bets configuration'),
+      'description' => t('Administer the configuration related to best bets.'),
+    ),
     'administer best bets' => array(
       'title' => t('Administer best bets'),
       'description' => t('Promote nodes so that they appear at the top of search results.'),

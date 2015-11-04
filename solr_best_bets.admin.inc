@@ -10,7 +10,7 @@
  *
  * @ingroup forms
  */
-function solr_best_bets_admin_form($form, &$form_state) {
+function solr_best_bets_admin_overview($form, &$form_state) {
   $environments = solr_best_bets_get_environments();
 
   // Get table rows.
@@ -211,7 +211,7 @@ function solr_best_bets_regenerate_key_submit($form, &$form_state) {
  */
 function solr_best_bets_keygen_confirm() {
   $question = t('Are you sure you want to regenerate the authorization key?');
-  $path = 'admin/config/search/solr_best_bets/advanced';
+  $path = 'admin/config/search/solr_best_bets';
   $description = t('This action regenerates the authorization key and cannot be undone. All endpoint requests must be updated using the newly generated key.');
   return confirm_form(array(), $question, $path, $description, t('Regenerate key'), t('Cancel'));
 }
@@ -225,5 +225,5 @@ function solr_best_bets_keygen_confirm_submit($form, &$form_state) {
   $key = drupal_hash_base64(drupal_random_bytes(55));
   variable_set('solr_best_bets:key', $key);
   drupal_set_message(t('The key has been regenerated: %key', array('%key' => $key)));
-  $form_state['redirect'] = 'admin/config/search/solr_best_bets/advanced';
+  $form_state['redirect'] = 'admin/config/search/solr_best_bets';
 }

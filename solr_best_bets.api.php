@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Hooks provided by the Acquia Search Best Bets module.
+ * Hooks provided by the Solr Best Bets module.
  */
 
 /**
