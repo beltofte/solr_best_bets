@@ -17,7 +17,7 @@ function solr_best_bets_menu() {
     'title' => 'Solr Best Bets',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('solr_best_bets_admin_form'),
-    'access arguments' => array('administer search'),
+    'access arguments' => array('administer best bets'),
     'description' => 'Configure best bets and configuration file generation behavior.',
     'file' => 'solr_best_bets.admin.inc',
   );
@@ -32,7 +32,7 @@ function solr_best_bets_menu() {
     'title' => 'Advanced',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('solr_best_bets_advanced_form'),
-    'access arguments' => array('administer search'),
+    'access arguments' => array('administer best bets'),
     'type' => MENU_LOCAL_TASK,
     'file' => 'solr_best_bets.admin.inc',
     'weight' => 10,
@@ -42,7 +42,7 @@ function solr_best_bets_menu() {
     'title' => 'Regenerate keys',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('solr_best_bets_keygen_confirm'),
-    'access arguments' => array('administer search'),
+    'access arguments' => array('administer best bets'),
     'file' => 'solr_best_bets.admin.inc',
   );
 
@@ -50,7 +50,7 @@ function solr_best_bets_menu() {
     'title' => 'Best bet queries',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('solr_best_bets_node_overview', 1),
-    'access arguments' => array('administer search'),
+    'access arguments' => array('administer best bets'),
     'weight' => 10,
     'type' => MENU_LOCAL_TASK,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
@@ -61,7 +61,7 @@ function solr_best_bets_menu() {
     'title' => 'Add as best bet for search query',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('solr_best_bets_node_form', 1),
-    'access arguments' => array('administer search'),
+    'access arguments' => array('administer best bets'),
     'type' => MENU_LOCAL_ACTION,
     'file' => 'solr_best_bets.pages.inc',
   );
@@ -76,6 +76,18 @@ function solr_best_bets_menu() {
   );
 
   return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function solr_best_bets_permission() {
+  return array(
+    'administer best bets' => array(
+      'title' => t('Administer best bets'),
+      'description' => t('Promote nodes so that they appear at the top of search results.'),
+    ),
+  );
 }
 
 /**
