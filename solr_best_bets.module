@@ -325,3 +325,24 @@ function solr_best_bets_comment_delete($comment) {
 function solr_best_bets_taxonomy_term_delete($term) {
   solr_best_bets_delete_by_entity_id('taxonomy', $term->tid);
 }
+
+/**
+ * Implements hook_apachesolr_query_alter().
+ */
+function solr_best_bets_apachesolr_query_alter(DrupalSolrQueryInterface $query) {
+  $query->addParam('fl', '[elevated]');
+}
+
+/**
+ * Implements template_preprocess_search_result().
+ */
+function solr_best_bets_preprocess_search_result(&$variables) {
+  $fields = $variables['result']['fields'];
+  if (isset($fields['[elevated]']) && $fields['[elevated]']) {
+    $variables['solr_best_bet'] = TRUE;
+    $variables['classes_array'][] = 'solr-best-bet';
+  }
+  else {
+    $variables['solr_best_bet'] = FALSE;
+  }
+}
