@@ -330,7 +330,25 @@ function solr_best_bets_taxonomy_term_delete($term) {
  * Implements hook_apachesolr_query_alter().
  */
 function solr_best_bets_apachesolr_query_alter(DrupalSolrQueryInterface $query) {
+  // Adding the pseudo field [elevated] telling Solr to return elevated status on all results.
+  // Supported from Solr version 4.
   $query->addParam('fl', '[elevated]');
+
+
+  // Adding elevated / excluded query params if enabled in the configuration.
+  // Supported from Solr version 4.7.
+  if (variable_get('solr_best_bets:use_query_params', 0)) {
+    $query_text = trim($query->getParam('q'), '"');
+
+    if (empty($query_text)) {
+      return;
+    }
+
+    $environment_name = 'apachesolr:' . $query->getContext()['env_id'];
+    $environment = solr_best_bets_environment_load($environment_name);
+    $query->addParam('elevateIds', implode(',', solr_best_bets_get_elevate_ids($environment, $query_text)));
+    $query->addParam('excludeIds', implode(',', solr_best_bets_get_exclude_ids($environment, $query_text)));
+  }
 }
 
 /**
@@ -345,4 +363,71 @@ function solr_best_bets_preprocess_search_result(&$variables) {
   else {
     $variables['solr_best_bet'] = FALSE;
   }
+}
+
+/**
+ * Gets any search index IDs that should be elevated for the given query text.
+ *
+ * @param array $environment
+ *   The environment definition.
+ * @param string $query_text
+ *   The search text to check.
+ *
+ * @return array
+ *   The list of IDs to elevate.
+ */
+function solr_best_bets_get_elevate_ids($environment, $query_text) {
+  return solr_best_bets_get_ids($environment, $query_text, FALSE);
+}
+
+/**
+ * Gets any search index IDs that should be excluded for the given query text.
+ *
+ * @param array $environment
+ *   The environment definition.
+ * @param string $query_text
+ *   The search text to check.
+ *
+ * @return array
+ *   The list of IDs to elevate.
+ */
+function solr_best_bets_get_exclude_ids($environment, $query_text) {
+  return solr_best_bets_get_ids($environment, $query_text, TRUE);
+}
+
+/**
+ * Gets any search index IDs to exclude/elevate for the given query text.
+ *
+ * @param array $environment
+ *   The environment definition.
+ * @param string $query_text
+ *   The search text to check.
+ * @param bool $exclude
+ *   True if checking for IDs to exclude, false if checking for IDs to elevate.
+ *
+ * @return array
+ *   The list of IDs to elevate.
+ */
+function solr_best_bets_get_ids($environment, $query_text, $exclude) {
+  $ids = array();
+
+  $sql = '
+    SELECT content_id
+    FROM {solr_best_bets}
+    WHERE environment = :environment
+    AND query_text = :query_text
+    AND exclude = :exclude
+    ORDER BY query_text, weight
+  ';
+  $result = db_query($sql, array(
+    ':environment' => $environment['name'],
+    ':query_text' => $query_text,
+    ':exclude' => $exclude,
+  ));
+
+  foreach ($result as $record) {
+    $ids[] = solr_best_bets_transform_id($record->content_id, $environment);
+  }
+
+  return $ids;
 }

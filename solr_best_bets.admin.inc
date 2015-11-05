@@ -154,10 +154,17 @@ function solr_best_bets_overview_submit($form, &$form_state) {
 function solr_best_bets_advanced_form($form) {
   global $base_url;
 
+  $form['solr_best_bets:use_query_params'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Use search query params instead of the elevate.xml file'),
+    '#default_value' => variable_get('solr_best_bets:use_query_params', 0),
+    '#description' => t('If this feature is enabled, will the elevate and exclude ID\'s be passed directly in the search query and the elevate.xml file be skipped. This feature requires Apache Solr 4.7+.'),
+  );
+
   $form['solr_best_bets:access_xml'] = array(
     '#type' => 'checkbox',
     '#title' => t('Expose endpoint to retrieve elevate.xml file'),
-    '#default_value' => variable_get('solr_best_bets:access_xml', 1),
+    '#default_value' => variable_get('solr_best_bets:access_xml', 0),
     '#description' => t('If the endpoint is exposed, the elevate.xml file can be retrieved via a web request to solr/<em>environment_name</em>/elevate.xml, where <em>environment_name</em> is the machine name of the environment defined in hook_solr_best_bets_environment_info() implementations.'),
   );
 
