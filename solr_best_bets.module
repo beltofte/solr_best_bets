@@ -443,7 +443,7 @@ function solr_best_bets_get_ids($environment, $query_text, $exclude) {
     WHERE environment = :environment
     AND query_text = :query_text
     AND exclude = :exclude
-    ORDER BY query_text, weight
+    ORDER BY weight
   ';
   $result = db_query($sql, array(
     ':environment' => $environment['name'],
