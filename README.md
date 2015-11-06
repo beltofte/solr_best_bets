@@ -10,6 +10,10 @@ An overview page (admin/content/solr_best_bets) has been added after inspiration
 Instead of adding it on the configuration page, has it been added as a local task on admin/content. This is better from an
 editorial perspective if editors should have access to control the best bets. 
 
+**Sort page** 
+
+A sort page (admin/content/solr_best_bets/sort) has been added. This page gives an editor or webmaster the posibility to sort the created best bets. This is important when multiple best bets exists for the same search query. This way can the order of these best bets be controlled in the search result. 
+
 **Cleaned up configuration** 
 
 The blank configuration page and tabs has been removed.
