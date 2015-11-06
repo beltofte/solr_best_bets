@@ -16,7 +16,7 @@ function solr_best_bets_admin_overview($form, &$form_state) {
   // Get table rows.
   $query = db_select('solr_best_bets', 'bets')
     ->extend('PagerDefault')
-    ->limit(20)
+    ->limit(25)
     ->orderBy('bets.environment')
     ->orderBy('bets.query_text')
     ->orderBy('bets.weight')
@@ -74,7 +74,7 @@ function solr_best_bets_admin_overview($form, &$form_state) {
       $link = entity_uri($content_id_parts[1], $entity);
     }
 
-    // Generates ID, escapes so we can pmore easily parse in the submit handler.
+    // Generates ID, escapes so we can more easily parse in the submit handler.
     $id = rawurlencode($content_id) . ':' . rawurlencode($record->query_text) . ':' . rawurlencode($env_id);
 
     // Build row.
@@ -144,6 +144,120 @@ function solr_best_bets_overview_submit($form, &$form_state) {
         break;
     }
   }
+}
+
+/**
+ * Page callback: Form constructor for a form to list and reorder best bets.
+ *
+ * @ingroup forms
+ * @see filter_menu()
+ * @see solr_best_bets_admin_order_submit()
+ */
+function solr_best_bets_admin_order($form) {
+  // Get table rows.
+  $query = db_select('solr_best_bets', 'bets')
+    ->extend('PagerDefault')
+    ->orderBy('bets.environment')
+    ->orderBy('bets.query_text')
+    ->orderBy('bets.weight')
+    ->fields('bets', array(
+      'content_id',
+      'environment',
+      'query_text',
+      'exclude',
+      'weight',
+  ));
+  $result = $query->execute();
+
+  $form['#tree'] = TRUE;
+  foreach ($result as $record) {
+    // Get human readable label of the environment.
+    $env_id = $record->environment;
+    $label = isset($environments[$env_id]) ? $environments[$env_id]['label'] : $env_id;
+
+    $content_id = $record->content_id;
+    $content_id_parts = explode(':', $content_id, 3);
+    $entities = entity_load($content_id_parts[1], array($content_id_parts[2]));
+
+    if (!empty($entities)) {
+      $entity = reset($entities); // Should only ever be one.
+      $title = $entity->title;
+      $link = entity_uri($content_id_parts[1], $entity);
+    }
+
+    // Generates ID, escapes so we can more easily parse in the submit handler.
+    $id = rawurlencode($content_id) . ':' . rawurlencode($record->query_text) . ':' . rawurlencode($env_id);
+
+    $form['items'][$id]['query'] = array('#markup' => check_plain($record->query_text));
+    $form['items'][$id]['title'] = array('#type' => 'link', '#title' => $title, '#href' => $link['path']);
+    $form['items'][$id]['exclude'] = array('#markup' => $record->exclude ? t('Yes') : t('No'));
+    $form['items'][$id]['environment'] = array('#markup' => check_plain($label));
+    $form['items'][$id]['weight'] = array(
+      '#type' => 'weight',
+      '#title' => t('Weight for best bet @query, page @title', array('@query' => $form['items'][$id]['query']['#markup'], '@title' => $title)),
+      '#title_display' => 'invisible',
+      '#default_value' => $record->weight,
+    );
+  }
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['submit'] = array('#type' => 'submit', '#value' => t('Save changes'));
+  return $form;
+}
+
+/**
+ * Form submission handler for solr_best_bets_admin_order().
+ */
+function solr_best_bets_admin_order_submit($form, &$form_state) {
+  module_load_include('inc', 'solr_best_bets', 'solr_best_bets.crud');
+
+  // Get query tekst and environment for best bets being acted on.
+  foreach ($form_state['values']['items'] as $id => $data) {
+    list($content_id, $query_text, $environment) = array_map('rawurldecode', explode(':', $id));
+    $records[$id] = array(
+      'content_id' => $content_id,
+      'query_text' => $query_text,
+      'environment' => $environment,
+      'weight' => $data['weight'],
+    );
+  }
+  solr_best_bets_update_weight($records);
+
+  drupal_set_message(t('The best bets ordering has been saved.'));
+}
+
+/**
+ * Returns HTML for the sorting of best bets.
+ *
+ * @param $variables
+ *   An associative array containing:
+ *   - form: A render element representing the form.
+ *
+ * @ingroup themeable
+ */
+function theme_solr_best_bets_admin_order($variables) {
+  $form = $variables['form'];
+
+  $rows = array();
+  foreach (element_children($form['items']) as $id) {
+    $form['items'][$id]['weight']['#attributes']['class'] = array('solr-best-bets-order-weight');
+    $rows[] = array(
+      'data' => array(
+        drupal_render($form['items'][$id]['query']),
+        drupal_render($form['items'][$id]['title']),
+        drupal_render($form['items'][$id]['exclude']),
+        drupal_render($form['items'][$id]['environment']),
+        drupal_render($form['items'][$id]['weight']),
+      ),
+      'class' => array('draggable'),
+    );
+  }
+  $header = array(t('Search query text'), t('Content'), t('Excluded'), t('Environment'), t('Weight'));
+  $output = theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'solr-best-bets-order')));
+  $output .= drupal_render_children($form);
+
+  drupal_add_tabledrag('solr-best-bets-order', 'order', 'sibling', 'solr-best-bets-order-weight');
+
+  return $output;
 }
 
 /**

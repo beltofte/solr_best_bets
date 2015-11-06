@@ -14,9 +14,23 @@ function solr_best_bets_menu() {
   $items = array();
 
   $items['admin/content/solr_best_bets'] = array(
-    'title' => 'Solr Best Bets',
+    'title' => 'Search Best Bets',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('solr_best_bets_admin_overview'),
+    'access arguments' => array('administer best bets'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'solr_best_bets.admin.inc',
+  );
+
+  $items['admin/content/solr_best_bets/overview'] = array(
+    'title' => 'Overview',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
+
+  $items['admin/content/solr_best_bets/sort'] = array(
+    'title' => 'Sort',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('solr_best_bets_admin_order'),
     'access arguments' => array('administer best bets'),
     'type' => MENU_LOCAL_TASK,
     'file' => 'solr_best_bets.admin.inc',
@@ -40,7 +54,7 @@ function solr_best_bets_menu() {
   );
 
   $items['node/%node/solr_best_bets'] = array(
-    'title' => 'Best bet queries',
+    'title' => 'Best Bets',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('solr_best_bets_node_overview', 1),
     'access arguments' => array('administer best bets'),
@@ -83,6 +97,18 @@ function solr_best_bets_permission() {
     'administer best bets' => array(
       'title' => t('Administer best bets'),
       'description' => t('Promote nodes so that they appear at the top of search results.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_theme().
+ */
+function solr_best_bets_theme() {
+  return array(
+    'solr_best_bets_admin_order' => array(
+      'render element' => 'form',
+      'file' => 'solr_best_bets.admin.inc',
     ),
   );
 }

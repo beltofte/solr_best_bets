@@ -74,7 +74,7 @@ function solr_best_bets_delete(array $records) {
 }
 
 /**
- * Deletes best bet entries from the database.
+ * Update best bet entries in the database with exclude stats.
  *
  * @param array $records
  *   An associative array of the values being saved containing:
@@ -97,6 +97,27 @@ function solr_best_bets_update_exclude(array $records, $exclude) {
   }
   $update->condition($or);
   $update->execute();
+}
+
+/**
+ * Update weight on best bet entries in the database.
+ *
+ * @param array $records
+ *   An associative array of the values being saved containing:
+ *     - content_id:
+ *     - query_text:
+ *     - environment:
+ *     - weight:
+ */
+function solr_best_bets_update_weight(array $records) {
+  foreach ($records as $values) {
+    db_update('solr_best_bets')
+      ->fields(array('weight' => $values['weight']))
+      ->condition('environment', $values['environment'])
+      ->condition('content_id', $values['content_id'])
+      ->condition('query_text', $values['query_text'])
+      ->execute();
+  }
 }
 
 /**
